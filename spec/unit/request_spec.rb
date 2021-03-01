@@ -1128,6 +1128,30 @@ describe RestClient::Request, :include_helpers do
     # </ssl>
   end
 
+  describe "ipaddr" do
+    it "does not set ipaddr if not specified" do
+      @request = RestClient::Request.new(:method => :put, :url => 'http://some/resource', :payload => 'payload')
+      allow(@http).to receive(:request)
+      allow(@request).to receive(:process_result)
+      allow(@request).to receive(:response_log)
+
+      expect(@net).not_to receive(:ipaddr=)
+
+      @request.send(:transmit, @uri, 'req', nil)
+    end
+
+    it 'sets ipaddr' do
+      @request = RestClient::Request.new(:method => :put, :url => 'http://some/resource', :payload => 'payload', :ipaddr => "127.0.0.1")
+      allow(@http).to receive(:request)
+      allow(@request).to receive(:process_result)
+      allow(@request).to receive(:response_log)
+
+      expect(@net).to receive(:ipaddr=).with("127.0.0.1")
+
+      @request.send(:transmit, @uri, 'req', nil)
+    end
+  end
+
   it "should still return a response object for 204 No Content responses" do
     @request = RestClient::Request.new(
             :method => :put,

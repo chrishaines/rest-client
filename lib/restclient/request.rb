@@ -36,6 +36,7 @@ module RestClient
   # * :max_redirects maximum number of redirections (default to 10)
   # * :proxy An HTTP proxy URI to use for this request. Any value here
   #   (including nil) will override RestClient.proxy.
+  # * :ipaddr specific IP address to connect to, bypassing DNS
   # * :verify_ssl enable ssl verification, possible values are constants from
   #     OpenSSL::SSL::VERIFY_*, defaults to OpenSSL::SSL::VERIFY_PEER
   # * :read_timeout and :open_timeout are how long to wait for a response and
@@ -54,7 +55,7 @@ module RestClient
     attr_reader :method, :uri, :url, :headers, :payload, :proxy,
                 :user, :password, :read_timeout, :max_redirects,
                 :open_timeout, :raw_response, :processed_headers, :args,
-                :ssl_opts
+                :ipaddr, :ssl_opts
 
     # An array of previous redirection responses
     attr_accessor :redirection_history
@@ -108,6 +109,8 @@ module RestClient
         raise ArgumentError.new(
           "Invalid :stream_log_percent #{@stream_log_percent.inspect}")
       end
+
+      @ipaddr = args.fetch(:ipaddr) if args.include?(:ipaddr)
 
       @proxy = args.fetch(:proxy) if args.include?(:proxy)
 
@@ -658,6 +661,9 @@ module RestClient
       setup_credentials req
 
       net = net_http_object(uri.hostname, uri.port)
+
+      net.ipaddr = ipaddr if ipaddr
+
       net.use_ssl = uri.is_a?(URI::HTTPS)
       net.ssl_version = ssl_version if ssl_version
       net.ciphers = ssl_ciphers if ssl_ciphers
