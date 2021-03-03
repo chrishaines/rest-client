@@ -110,7 +110,15 @@ module RestClient
           "Invalid :stream_log_percent #{@stream_log_percent.inspect}")
       end
 
-      @ipaddr = args.fetch(:ipaddr) if args.include?(:ipaddr)
+      if args.include?(:ipaddr)
+        unless Net::HTTP.instance_methods.include?(:ipaddr=)
+          raise ArgumentError.new(
+            "The ipaddr option is not supported by the current version of net/http. "\
+            "Please upgrade Ruby or use the net-http gem."
+          )
+        end
+        @ipaddr = args.fetch(:ipaddr)
+      end
 
       @proxy = args.fetch(:proxy) if args.include?(:proxy)
 

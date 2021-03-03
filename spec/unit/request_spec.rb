@@ -1129,26 +1129,38 @@ describe RestClient::Request, :include_helpers do
   end
 
   describe "ipaddr" do
-    it "does not set ipaddr if not specified" do
-      @request = RestClient::Request.new(:method => :put, :url => 'http://some/resource', :payload => 'payload')
-      allow(@http).to receive(:request)
-      allow(@request).to receive(:process_result)
-      allow(@request).to receive(:response_log)
+    if Net::HTTP.instance_methods.include?(:ipaddr=)
+      describe "when Net::HTTP supports ipaddr" do
+        it "does not set ipaddr if not specified" do
+          @request = RestClient::Request.new(:method => :put, :url => 'http://some/resource', :payload => 'payload')
+          allow(@http).to receive(:request)
+          allow(@request).to receive(:process_result)
+          allow(@request).to receive(:response_log)
 
-      expect(@net).not_to receive(:ipaddr=)
+          expect(@net).not_to receive(:ipaddr=)
 
-      @request.send(:transmit, @uri, 'req', nil)
-    end
+          @request.send(:transmit, @uri, 'req', nil)
+        end
 
-    it 'sets ipaddr' do
-      @request = RestClient::Request.new(:method => :put, :url => 'http://some/resource', :payload => 'payload', :ipaddr => "127.0.0.1")
-      allow(@http).to receive(:request)
-      allow(@request).to receive(:process_result)
-      allow(@request).to receive(:response_log)
+        it 'sets ipaddr' do
+          @request = RestClient::Request.new(:method => :put, :url => 'http://some/resource', :payload => 'payload', :ipaddr => "127.0.0.1")
+          allow(@http).to receive(:request)
+          allow(@request).to receive(:process_result)
+          allow(@request).to receive(:response_log)
 
-      expect(@net).to receive(:ipaddr=).with("127.0.0.1")
+          expect(@net).to receive(:ipaddr=).with("127.0.0.1")
 
-      @request.send(:transmit, @uri, 'req', nil)
+          @request.send(:transmit, @uri, 'req', nil)
+        end
+      end
+    else
+      describe "when Net::HTTP does not support ipaddr" do
+        it "raises an exception" do
+          expect {
+            RestClient::Request.new(:method => :put, :url => 'http://some/resource', :payload => 'payload', :ipaddr => "127.0.0.1")
+          }.to raise_error(ArgumentError, /The ipaddr option is not supported by the current version of net\/http/)
+        end
+      end
     end
   end
 

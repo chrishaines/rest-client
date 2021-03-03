@@ -222,6 +222,14 @@ module RestClient
         'Timed out reading data from server'
       end
     end
+
+    # The ipaddr option is not supported in the current environment
+    class IPAddrOptionNotSupported < RestClient::Exception
+      def default_message
+        "The ipaddr option is not supported in the current version of net/http. "\
+        "Please upgrade Ruby or use the net-http gem."
+      end
+    end
   end
 
 
